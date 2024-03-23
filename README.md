@@ -44,11 +44,6 @@ This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE
 
 - Thymester/Tyler
 
-## Acknowledgments
-
-- Mention any libraries, tutorials, or resources used in developing the application.
-- Give credit to any individuals or organizations that inspired or supported the project.
-
 ## Disclaimer
 
 This application is provided as-is without any warranty. The authors and contributors are not responsible for any damage or loss caused by the use of this software.
