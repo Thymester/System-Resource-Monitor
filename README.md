@@ -12,6 +12,18 @@ The System Resource Monitor is a Python application built using the Tkinter GUI 
 - **Export Data:** Option to export monitored data to a CSV file for external analysis or record-keeping.
 - **System Information Display:** Provides basic system information such as the number of CPU cores, total system RAM, and OS platform.
 
+## About CPU Monitoring Interval
+
+The CPU Monitoring Interval, as implemented in this application, refers to the length of time during which the application tracks and collects data on the CPU usage of the system before updating the graphical representation of CPU usage.
+
+In simpler terms, when you set the CPU Monitoring Interval to a specific value (in seconds), the application waits for that duration before sampling the CPU usage again. After the specified interval, it calculates the average CPU usage over that time period and updates the graph accordingly.
+
+For example, if you set the CPU Monitoring Interval to 1 second, the application will sample the CPU usage every second and update the graph based on the average CPU usage over each one-second interval. This allows for more frequent updates and potentially more granular insights into CPU usage patterns.
+
+On the other hand, if you set the interval to a longer duration, such as 5 seconds, the application will wait for 5 seconds before sampling the CPU again and updating the graph. This might result in less frequent updates but could be useful for observing trends over longer periods.
+
+In summary, the CPU Monitoring Interval determines how often the application refreshes and updates the CPU usage data on the graphical interface, providing users with insights into CPU performance over specified time intervals.
+
 ## How to Use
 
 1. **Threshold Setting:** Enter desired CPU and memory thresholds.
