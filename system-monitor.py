@@ -11,10 +11,10 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from plyer import notification
 
 # Global variables
-CPU_THRESHOLD = 80  # Default CPU threshold
-MEMORY_THRESHOLD = 80  # Default Memory threshold
-MONITOR_INTERVAL = 1  # Refresh interval for monitoring (in seconds)
+CPU_THRESHOLD = 99.15  # Default CPU threshold
+MEMORY_THRESHOLD = 85  # Default Memory threshold
 HISTORY_LENGTH = 7  # Number of data points to store in history
+CPU_MON_INTERVAL = 1 # Length of time the app monitors the CPU usage
 
 cpu_history = deque(maxlen=HISTORY_LENGTH)
 memory_history = deque(maxlen=HISTORY_LENGTH)
@@ -31,7 +31,7 @@ def monitor_resources():
     global monitoring
     last_notification_time = 0
     while monitoring:
-        cpu_percent_per_core = psutil.cpu_percent(interval=None, percpu=True)
+        cpu_percent_per_core = psutil.cpu_percent(interval=CPU_MON_INTERVAL, percpu=True)
         avg_cpu_percent = sum(cpu_percent_per_core) / len(cpu_percent_per_core)
         memory_percent = psutil.virtual_memory().percent
 
@@ -63,8 +63,6 @@ def monitor_resources():
                 )
                 last_notification_time = current_time
 
-        time.sleep(MONITOR_INTERVAL)
-
 # Function to update the resource graphs
 def update_graph():
     while monitoring:
@@ -89,7 +87,8 @@ def start_monitoring():
         threading.Thread(target=update_graph, daemon=True).start()
         start_button.config(state="disabled")
         stop_button.config(state="normal")
-        monitoring_label.config(text="Monitoring CPU usage. Values may vary due to Task Manager's faster updates.")
+        monitoring_label.config(text="Monitoring the CPU usage based on monitoring time before graphing CPU percentage.")
+        monitoring_label_info.config(text="*In simpler terms, this value refers to the duration for which the application calculates the average CPU usage before graphing.")
 
 # Function to stop monitoring
 def stop_monitoring():
@@ -98,6 +97,7 @@ def stop_monitoring():
     start_button.config(state="normal")
     stop_button.config(state="disabled")
     monitoring_label.config(text="")
+    monitoring_label_info.config(text="")
 
 # Function to export resource data to a file
 def export_data():
@@ -111,8 +111,8 @@ def export_data():
 # Create GUI
 root = tk.Tk()
 root.title("System Resource Monitor")
-root.geometry("800x700")
-root.minsize(800, 700)
+root.geometry("800x730")
+root.minsize(800, 730)
 
 # Tab control
 tab_control = ttk.Notebook(root)
@@ -133,6 +133,15 @@ cpu_entry = ttk.Entry(threshold_frame)
 cpu_entry.grid(row=0, column=1, padx=5, pady=5)
 cpu_entry.insert(0, CPU_THRESHOLD)
 
+# CPU Monitoring Interval Entry
+cpu_interval_label = ttk.Label(threshold_frame, text="CPU Monitoring Interval (seconds):")
+cpu_interval_label_info = ttk.Label(threshold_frame, text="This sets the CPU monitoring duration before graphing*")
+cpu_interval_label.grid(row=2, column=0, padx=5, pady=5, sticky="e")
+cpu_interval_label_info.grid(row=2, column=2, padx=5, pady=5, sticky="e")
+cpu_interval_entry = ttk.Entry(threshold_frame)
+cpu_interval_entry.grid(row=2, column=1, padx=5, pady=5)
+cpu_interval_entry.insert(0, CPU_MON_INTERVAL)
+
 # Memory Threshold Entry
 memory_label = ttk.Label(threshold_frame, text="Memory Threshold (%):")
 memory_label.grid(row=1, column=0, padx=5, pady=5, sticky="e")
@@ -140,16 +149,47 @@ memory_entry = ttk.Entry(threshold_frame)
 memory_entry.grid(row=1, column=1, padx=5, pady=5)
 memory_entry.insert(0, MEMORY_THRESHOLD)
 
+def save_cpu_threshold(event):
+    global CPU_THRESHOLD
+    try:
+        CPU_THRESHOLD = float(cpu_entry.get())
+    except ValueError:
+        cpu_entry.delete(0, "end")
+        cpu_entry.insert(0, str(CPU_THRESHOLD))
+
+def save_memory_threshold(event):
+    global MEMORY_THRESHOLD
+    try:
+        MEMORY_THRESHOLD = float(memory_entry.get())
+    except ValueError:
+        memory_entry.delete(0, "end")
+        memory_entry.insert(0, str(MEMORY_THRESHOLD))
+
+def save_cpu_interval(event):
+    global CPU_MON_INTERVAL
+    try:
+        CPU_MON_INTERVAL = float(cpu_interval_entry.get())
+    except ValueError:
+        cpu_interval_entry.delete(0, "end")
+        cpu_interval_entry.insert(0, str(CPU_MON_INTERVAL))
+
+# Bind events to entry boxes
+cpu_entry.bind('<FocusOut>', save_cpu_threshold)
+memory_entry.bind('<FocusOut>', save_memory_threshold)
+cpu_interval_entry.bind('<FocusOut>', save_cpu_interval)
+
 # Start and Stop Monitoring Buttons
 start_button = ttk.Button(threshold_frame, text="Start Monitoring", command=start_monitoring)
-start_button.grid(row=2, column=0, padx=5, pady=5)
+start_button.grid(row=5, column=0, padx=5, pady=5)
 
 stop_button = ttk.Button(threshold_frame, text="Stop Monitoring", command=stop_monitoring, state="disabled")
-stop_button.grid(row=2, column=1, padx=5, pady=5)
+stop_button.grid(row=5, column=1, padx=5, pady=5)
 
 # Monitoring Label
 monitoring_label = ttk.Label(monitor_tab, text="")
+monitoring_label_info = ttk.Label(monitor_tab, text="")
 monitoring_label.pack(pady=5)
+monitoring_label_info.pack(pady=0.5, padx=0.5)
 
 # Graph Frame
 graph_frame = ttk.LabelFrame(monitor_tab, text="Resource Usage Graph")
