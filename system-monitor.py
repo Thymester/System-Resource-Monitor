@@ -5,6 +5,8 @@ import time
 import threading
 import os
 import sys
+import csv
+from tkinter import filedialog
 from collections import deque
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -88,7 +90,7 @@ def start_monitoring():
         start_button.config(state="disabled")
         stop_button.config(state="normal")
         monitoring_label.config(text="Monitoring the CPU usage based on monitoring time before graphing CPU percentage.")
-        monitoring_label_info.config(text="*In simpler terms, this value refers to the duration for which the application calculates the average CPU usage before graphing.")
+        monitoring_label_info.config(text="Simply put, the CPU monitor interval value is the duration for which the application calculates the average CPU usage before displaying it on a graph.")
 
 # Function to stop monitoring
 def stop_monitoring():
@@ -103,121 +105,123 @@ def stop_monitoring():
 def export_data():
     file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
     if file_path:
-        with open(file_path, "w") as file:
-            file.write("Time,CPU (%),Memory (%)\n")
+        with open(file_path, "w", newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Time", "CPU (%)", "Memory (%)"])
             for i in range(len(all_time_history)):
-                file.write(f"{all_time_history[i]},{all_cpu_history[i]},{all_memory_history[i]}\n")
+                writer.writerow([all_time_history[i], all_cpu_history[i], all_memory_history[i]])
 
 # Create GUI
-root = tk.Tk()
-root.title("System Resource Monitor")
-root.geometry("800x730")
-root.minsize(800, 730)
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.title("System Resource Monitor")
+    root.geometry("800x730")
+    root.minsize(800, 730)
 
-# Tab control
-tab_control = ttk.Notebook(root)
-tab_control.pack(expand=1, fill="both")
+    # Tab control
+    tab_control = ttk.Notebook(root)
+    tab_control.pack(expand=1, fill="both")
 
-# CPU and Memory Monitoring Tab
-monitor_tab = ttk.Frame(tab_control)
-tab_control.add(monitor_tab, text="Resource Monitoring")
+    # CPU and Memory Monitoring Tab
+    monitor_tab = ttk.Frame(tab_control)
+    tab_control.add(monitor_tab, text="Resource Monitoring")
 
-# Resource Threshold Setting Frame
-threshold_frame = ttk.LabelFrame(monitor_tab, text="Resource Thresholds")
-threshold_frame.pack(padx=10, pady=10, fill="both", expand=True)
+    # Resource Threshold Setting Frame
+    threshold_frame = ttk.LabelFrame(monitor_tab, text="Resource Thresholds")
+    threshold_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-# CPU Threshold Entry
-cpu_label = ttk.Label(threshold_frame, text="CPU Threshold (%):")
-cpu_label.grid(row=0, column=0, padx=5, pady=5, sticky="e")
-cpu_entry = ttk.Entry(threshold_frame)
-cpu_entry.grid(row=0, column=1, padx=5, pady=5)
-cpu_entry.insert(0, CPU_THRESHOLD)
+    # CPU Threshold Entry
+    cpu_label = ttk.Label(threshold_frame, text="CPU Threshold (%):")
+    cpu_label.grid(row=0, column=0, padx=5, pady=5, sticky="e")
+    cpu_entry = ttk.Entry(threshold_frame)
+    cpu_entry.grid(row=0, column=1, padx=5, pady=5)
+    cpu_entry.insert(0, CPU_THRESHOLD)
 
-# CPU Monitoring Interval Entry
-cpu_interval_label = ttk.Label(threshold_frame, text="CPU Monitoring Interval (seconds):")
-cpu_interval_label_info = ttk.Label(threshold_frame, text="This sets the CPU monitoring duration before graphing*")
-cpu_interval_label.grid(row=2, column=0, padx=5, pady=5, sticky="e")
-cpu_interval_label_info.grid(row=2, column=2, padx=5, pady=5, sticky="e")
-cpu_interval_entry = ttk.Entry(threshold_frame)
-cpu_interval_entry.grid(row=2, column=1, padx=5, pady=5)
-cpu_interval_entry.insert(0, CPU_MON_INTERVAL)
+    # CPU Monitoring Interval Entry
+    cpu_interval_label = ttk.Label(threshold_frame, text="CPU Monitoring Interval (seconds):")
+    cpu_interval_label.grid(row=2, column=0, padx=5, pady=5, sticky="e")
+    cpu_interval_entry = ttk.Entry(threshold_frame)
+    cpu_interval_entry.grid(row=2, column=1, padx=5, pady=5)
+    cpu_interval_entry.insert(0, CPU_MON_INTERVAL)
 
-# Memory Threshold Entry
-memory_label = ttk.Label(threshold_frame, text="Memory Threshold (%):")
-memory_label.grid(row=1, column=0, padx=5, pady=5, sticky="e")
-memory_entry = ttk.Entry(threshold_frame)
-memory_entry.grid(row=1, column=1, padx=5, pady=5)
-memory_entry.insert(0, MEMORY_THRESHOLD)
+    # Memory Threshold Entry
+    memory_label = ttk.Label(threshold_frame, text="Memory Threshold (%):")
+    memory_label.grid(row=1, column=0, padx=5, pady=5, sticky="e")
+    memory_entry = ttk.Entry(threshold_frame)
+    memory_entry.grid(row=1, column=1, padx=5, pady=5)
+    memory_entry.insert(0, MEMORY_THRESHOLD)
 
-def save_cpu_threshold(event):
-    global CPU_THRESHOLD
-    try:
-        CPU_THRESHOLD = float(cpu_entry.get())
-    except ValueError:
-        cpu_entry.delete(0, "end")
-        cpu_entry.insert(0, str(CPU_THRESHOLD))
+    def save_cpu_threshold(event):
+        global CPU_THRESHOLD
+        try:
+            CPU_THRESHOLD = float(cpu_entry.get())
+        except ValueError:
+            cpu_entry.delete(0, "end")
+            cpu_entry.insert(0, str(CPU_THRESHOLD))
 
-def save_memory_threshold(event):
-    global MEMORY_THRESHOLD
-    try:
-        MEMORY_THRESHOLD = float(memory_entry.get())
-    except ValueError:
-        memory_entry.delete(0, "end")
-        memory_entry.insert(0, str(MEMORY_THRESHOLD))
+    def save_memory_threshold(event):
+        global MEMORY_THRESHOLD
+        try:
+            MEMORY_THRESHOLD = float(memory_entry.get())
+        except ValueError:
+            memory_entry.delete(0, "end")
+            memory_entry.insert(0, str(MEMORY_THRESHOLD))
 
-def save_cpu_interval(event):
-    global CPU_MON_INTERVAL
-    try:
-        CPU_MON_INTERVAL = float(cpu_interval_entry.get())
-    except ValueError:
-        cpu_interval_entry.delete(0, "end")
-        cpu_interval_entry.insert(0, str(CPU_MON_INTERVAL))
+    def save_cpu_interval(event):
+        global CPU_MON_INTERVAL
+        try:
+            CPU_MON_INTERVAL = float(cpu_interval_entry.get())
+        except ValueError:
+            cpu_interval_entry.delete(0, "end")
+            cpu_interval_entry.insert(0, str(CPU_MON_INTERVAL))
 
-# Bind events to entry boxes
-cpu_entry.bind('<FocusOut>', save_cpu_threshold)
-memory_entry.bind('<FocusOut>', save_memory_threshold)
-cpu_interval_entry.bind('<FocusOut>', save_cpu_interval)
+    # Bind events to entry boxes
+    cpu_entry.bind('<FocusOut>', save_cpu_threshold)
+    memory_entry.bind('<FocusOut>', save_memory_threshold)
+    cpu_entry.bind('<FocusOut>', save_cpu_threshold)
+    memory_entry.bind('<FocusOut>', save_memory_threshold)
+    cpu_interval_entry.bind('<FocusOut>', save_cpu_interval)
 
-# Start and Stop Monitoring Buttons
-start_button = ttk.Button(threshold_frame, text="Start Monitoring", command=start_monitoring)
-start_button.grid(row=5, column=0, padx=5, pady=5)
+    # Start and Stop Monitoring Buttons
+    start_button = ttk.Button(threshold_frame, text="Start Monitoring", command=start_monitoring)
+    start_button.grid(row=5, column=0, padx=5, pady=5)
 
-stop_button = ttk.Button(threshold_frame, text="Stop Monitoring", command=stop_monitoring, state="disabled")
-stop_button.grid(row=5, column=1, padx=5, pady=5)
+    stop_button = ttk.Button(threshold_frame, text="Stop Monitoring", command=stop_monitoring, state="disabled")
+    stop_button.grid(row=5, column=1, padx=5, pady=5)
 
-# Monitoring Label
-monitoring_label = ttk.Label(monitor_tab, text="")
-monitoring_label_info = ttk.Label(monitor_tab, text="")
-monitoring_label.pack(pady=5)
-monitoring_label_info.pack(pady=0.5, padx=0.5)
+    # Monitoring Label
+    monitoring_label = ttk.Label(monitor_tab, text="")
+    monitoring_label_info = ttk.Label(monitor_tab, text="")
+    monitoring_label.pack(pady=5)
+    monitoring_label_info.pack(pady=0.5, padx=0.5)
 
-# Graph Frame
-graph_frame = ttk.LabelFrame(monitor_tab, text="Resource Usage Graph")
-graph_frame.pack(padx=10, pady=10, fill="both", expand=True)
+    # Graph Frame
+    graph_frame = ttk.LabelFrame(monitor_tab, text="Resource Usage Graph")
+    graph_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-fig = plt.figure(figsize=(8, 4))
-ax = fig.add_subplot(111)
-ax.grid(True)
-ax.set_xlabel('Time')
-ax.set_ylabel('Percentage')
-canvas = FigureCanvasTkAgg(fig, master=graph_frame)
-canvas.get_tk_widget().pack(fill='both', expand=True)
+    fig = plt.figure(figsize=(8, 4))
+    ax = fig.add_subplot(111)
+    ax.grid(True)
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Percentage')
+    canvas = FigureCanvasTkAgg(fig, master=graph_frame)
+    canvas.get_tk_widget().pack(fill='both', expand=True)
 
-# Export Data Button
-export_button = ttk.Button(monitor_tab, text="Export Data", command=export_data)
-export_button.pack(pady=10)
+    # Export Data Button
+    export_button = ttk.Button(monitor_tab, text="Export Data", command=export_data)
+    export_button.pack(pady=10)
 
-# System Information Tab
-info_tab = ttk.Frame(tab_control)
-tab_control.add(info_tab, text="System Information")
+    # System Information Tab
+    info_tab = ttk.Frame(tab_control)
+    tab_control.add(info_tab, text="System Information")
 
-# System Information Display
-system_info_text = tk.Text(info_tab, wrap="word", height=20, width=60)
-system_info_text.pack(padx=10, pady=10)
-system_info_text.insert(tk.END, f"CPU Cores: {os.cpu_count()}\n")
-system_info_text.insert(tk.END, f"System RAM: {psutil.virtual_memory().total / (1024 ** 3):.2f} GB\n")
-system_info_text.insert(tk.END, f"OS Platform & Name: {sys.platform} {os.name}\n")
-system_info_text.configure(state="disabled")
+    # System Information Display
+    system_info_text = tk.Text(info_tab, wrap="word", height=20, width=60)
+    system_info_text.pack(padx=10, pady=10)
+    system_info_text.insert(tk.END, f"CPU Cores: {os.cpu_count()}\n")
+    system_info_text.insert(tk.END, f"System RAM: {psutil.virtual_memory().total / (1024 ** 3):.2f} GB\n")
+    system_info_text.insert(tk.END, f"OS Platform & Name: {sys.platform} {os.name}\n")
+    system_info_text.configure(state="disabled")
 
-# Run the GUI
-root.mainloop()
+    # Run the GUI
+    root.mainloop()
