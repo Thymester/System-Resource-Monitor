@@ -30,7 +30,6 @@ monitoring = False
 
 # Function to monitor system resources
 def monitor_resources():
-    global monitoring
     last_notification_time = 0
     while monitoring:
         cpu_percent_per_core = psutil.cpu_percent(interval=CPU_MON_INTERVAL, percpu=True)
@@ -134,14 +133,14 @@ if __name__ == "__main__":
     cpu_label.grid(row=0, column=0, padx=5, pady=5, sticky="e")
     cpu_entry = ttk.Entry(threshold_frame)
     cpu_entry.grid(row=0, column=1, padx=5, pady=5)
-    cpu_entry.insert(0, CPU_THRESHOLD)
+    cpu_entry.insert(0, str(CPU_THRESHOLD))
 
     # CPU Monitoring Interval Entry
     cpu_interval_label = ttk.Label(threshold_frame, text="CPU Monitoring Interval (seconds):")
     cpu_interval_label.grid(row=2, column=0, padx=5, pady=5, sticky="e")
     cpu_interval_entry = ttk.Entry(threshold_frame)
     cpu_interval_entry.grid(row=2, column=1, padx=5, pady=5)
-    cpu_interval_entry.insert(0, CPU_MON_INTERVAL)
+    cpu_interval_entry.insert(0, str(CPU_MON_INTERVAL))
 
     # Memory Threshold Entry
     memory_label = ttk.Label(threshold_frame, text="Memory Threshold (%):")
