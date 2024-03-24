@@ -78,7 +78,6 @@ def update_graph():
         ax.set_title('Resource Usage')
         ax.grid(True)
         canvas.draw()
-        time.sleep(2)
 
 # Function to start monitoring
 def start_monitoring():
