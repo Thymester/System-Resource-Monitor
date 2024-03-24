@@ -1,0 +1,11 @@
+name: system_resource_monitor
+channels:
+  - defaults
+  - conda-forge
+
+dependencies:
+  - python=3.8
+  - matplotlib=3.4.3
+  - plyer=2.0.0
+  - psutil=5.8.0
+  - numpy=1.21.2
