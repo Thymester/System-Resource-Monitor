@@ -35,6 +35,10 @@ class ResourceMonitor:
         self.root.geometry("800x730")
         self.root.minsize(800, 730)
 
+        # Tab control
+        self.tab_control = ttk.Notebook(self.root)
+        self.tab_control.pack(expand=1, fill="both")
+
         self.create_gui()
 
     def start_monitoring(self):
@@ -156,6 +160,18 @@ class ResourceMonitor:
         # Export Data Button
         export_button = ttk.Button(monitor_tab, text="Export Data", command=self.export_data)
         export_button.pack(pady=10)
+
+        # System Information Tab
+        info_tab = ttk.Frame(self.tab_control)
+        self.tab_control.add(info_tab, text="System Information")
+
+        # System Information Display
+        system_info_text = tk.Text(info_tab, wrap="word", height=20, width=60)
+        system_info_text.pack(padx=10, pady=10)
+        system_info_text.insert(tk.END, f"CPU Cores: {os.cpu_count()}\n")
+        system_info_text.insert(tk.END, f"System RAM: {psutil.virtual_memory().total / (1024 ** 3):.2f} GB\n")
+        system_info_text.insert(tk.END, f"OS Platform & Name: {sys.platform} {os.name}\n")
+        system_info_text.configure(state="disabled")
 
     # Function to export resource data to a file
     def export_data(self):
