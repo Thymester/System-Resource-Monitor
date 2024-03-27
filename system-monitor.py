@@ -75,6 +75,7 @@ class ResourceMonitor:
             self.ax.set_xlabel('Time')
             self.ax.set_ylabel('Percentage')
             self.ax.set_title('Resource Usage Graph')
+            self.ax.grid(True)
             self.canvas.draw()
 
     def stop_monitoring(self):
