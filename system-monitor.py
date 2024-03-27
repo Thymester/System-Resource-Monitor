@@ -65,7 +65,7 @@ class ResourceMonitor:
             self.monitoring_label.config(text="Monitoring the CPU usage based on monitoring time before graphing CPU percentage.")
             self.monitoring_label_info.config(text="Simply put, the CPU monitor interval value is the duration for which the application calculates the average CPU usage before displaying it on a graph.")
 
-        # Function to update the resource graphs
+    # Function to update the resource graphs
     def update_graph(self):
         while self.monitoring:
             self.ax.clear()
@@ -75,7 +75,6 @@ class ResourceMonitor:
             self.ax.set_xlabel('Time')
             self.ax.set_ylabel('Percentage')
             self.ax.set_title('Resource Usage Graph')
-            self.ax.grid(True)
             self.canvas.draw()
 
     def stop_monitoring(self):
@@ -164,7 +163,6 @@ class ResourceMonitor:
 
         self.fig = plt.figure(figsize=(8, 4))
         self.ax = self.fig.add_subplot(111)
-        self.ax.grid(True)
         self.ax.set_xlabel('Time')
         self.ax.set_ylabel('Percentage')
         self.canvas = FigureCanvasTkAgg(self.fig, master=graph_frame)
