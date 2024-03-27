@@ -4,13 +4,13 @@ import psutil
 import time
 import threading
 import os
-import sys
 import csv
 from tkinter import filedialog
 from collections import deque
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from plyer import notification
+import platform
 
 # Resource Monitor class to encapsulate variables and functions
 class ResourceMonitor:
@@ -32,8 +32,20 @@ class ResourceMonitor:
 
         self.root = tk.Tk()
         self.root.title("System Resource Monitor")
-        self.root.geometry("800x730")
-        self.root.minsize(800, 730)
+        self.root.minsize(800, 740)
+        self.root.maxsize(800, 740)
+        self.root.resizable(False, False)
+
+        # Calculate the position to center the window
+        window_width = 800
+        window_height = 740
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 3
+
+        # Set the position of the window
+        self.root.geometry(f'{window_width}x{window_height}+{x}+{y}')
 
         # Tab control
         self.tab_control = ttk.Notebook(self.root)
@@ -166,11 +178,37 @@ class ResourceMonitor:
         self.tab_control.add(info_tab, text="System Information")
 
         # System Information Display
-        system_info_text = tk.Text(info_tab, wrap="word", height=20, width=60)
+        system_info_text = tk.Text(info_tab, wrap="word", height=50, width=80)
         system_info_text.pack(padx=10, pady=10)
-        system_info_text.insert(tk.END, f"CPU Cores: {os.cpu_count()}\n")
-        system_info_text.insert(tk.END, f"System RAM: {psutil.virtual_memory().total / (1024 ** 3):.2f} GB\n")
-        system_info_text.insert(tk.END, f"OS Platform & Name: {sys.platform} {os.name}\n")
+
+        # Gather system information
+        cpu_info1 = "General System Info: \n"
+        cpu_info = f"CPU Cores: {os.cpu_count()}\n"
+        cpu_model = f"CPU Model: {platform.processor()}\n"  # Fetch CPU model information using platform module
+        ram_info = f"System RAM: {psutil.virtual_memory().total / (1024 ** 3):.2f} GB\n"
+        os_info = f"OS Platform & Name: {platform.system()} {platform.release()}\n\n"  # Fetch OS platform and name using platform module
+
+        disk_info = "Disk Usage:\n"
+        for partition in psutil.disk_partitions():
+            usage = psutil.disk_usage(partition.mountpoint)
+            disk_info += f"  {partition.device} - {usage.percent}% used ({usage.free / (1024 ** 3):.2f} GB free / {usage.total / (1024 ** 3):.2f} GB total)\n\n"
+
+        network_info = "Network Interfaces:\n"
+        for interface, addresses in psutil.net_if_addrs().items():
+            network_info += f"  Interface: {interface}\n"
+            for address in addresses:
+                network_info += f"    - {address.family.name}: {address.address}\n"
+
+        # Insert gathered system information into the Text widget
+        system_info_text.insert(tk.END, cpu_info1)
+        system_info_text.insert(tk.END, cpu_info)
+        system_info_text.insert(tk.END, cpu_model)
+        system_info_text.insert(tk.END, ram_info)
+        system_info_text.insert(tk.END, os_info)
+        system_info_text.insert(tk.END, disk_info)
+        system_info_text.insert(tk.END, network_info)
+
+        # Disable editing for all system information
         system_info_text.configure(state="disabled")
 
     # Function to export resource data to a file
