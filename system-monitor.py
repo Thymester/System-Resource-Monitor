@@ -256,9 +256,11 @@ class ResourceMonitor:
                     )
                     last_notification_time = current_time
 
-        # This line should be outside the while loop
-        self.root.mainloop()
+    def cleanup(self):
+        self.monitoring = False  # Stop monitoring
+        self.root.quit()  # Quit Tkinter main loop
 
 if __name__ == "__main__":
     monitor = ResourceMonitor()
+    monitor.root.protocol("WM_DELETE_WINDOW", monitor.cleanup)
     monitor.root.mainloop()
