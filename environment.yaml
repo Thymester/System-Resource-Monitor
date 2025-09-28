@@ -13,3 +13,5 @@ dependencies:
   - pip
   - pip:
     - plyer
+    - GPUtil
+    - nvidia-ml-py3

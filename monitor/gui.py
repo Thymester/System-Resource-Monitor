@@ -7,69 +7,66 @@ import requests
 from tkinter import messagebox
 
 def create_gui(self):
-    def check_for_updates(self):
-        try:
-            # GitHub API URL for the latest release
-            repo_owner = "Thymester"
-            repo_name = "System-Resource-Monitor"
-            url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/latest"
-
-            # Fetch the latest release data
-            response = requests.get(url)
-            response.raise_for_status()
-            latest_release = response.json()
-            latest_version = latest_release["tag_name"]
-
-            # Compare with the current version
-            if self.CURRENT_VERSION != latest_version:
-                messagebox.showinfo(
-                    "Update Available",
-                    f"A new version ({latest_version}) is available! Please update your application.\n\nDownload Link: {url}"
-                )
-            else:
-                messagebox.showinfo(
-                    "Latest Version",
-                    f"You are already using the latest version ({latest_version}) of {repo_name}."
-                )
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror(
-                "Update Check Failed",
-                f"Failed to check for updates. Please try again later.\nError: {e}"
-            )
-
-    # Tab control
-    self.tab_control = ttk.Notebook(self.root)
+    # Configure matplotlib for modern look
+    plt.style.use('default')
+    
+    # Main container with padding
+    main_frame = ttk.Frame(self.root)
+    main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+    
+    # Tab control with modern styling
+    self.tab_control = ttk.Notebook(main_frame)
     self.tab_control.pack(expand=1, fill="both")
 
-    # CPU and Memory Monitoring Tab
+    # ==================== MONITORING TAB ====================
     monitor_tab = ttk.Frame(self.tab_control)
-    self.tab_control.add(monitor_tab, text="Resource Monitoring")
+    self.tab_control.add(monitor_tab, text="📊 Resource Monitor")
 
-    # Resource Threshold Setting Frame
-    threshold_frame = ttk.LabelFrame(monitor_tab, text="Resource Thresholds")
-    threshold_frame.pack(padx=10, pady=10, fill="both", expand=True)
+    # Control Panel
+    control_frame = ttk.LabelFrame(monitor_tab, text="Control Panel", padding=15)
+    control_frame.pack(fill="x", pady=(0, 10))
 
-    # CPU Threshold Entry
-    cpu_label = ttk.Label(threshold_frame, text="CPU Threshold (%):")
-    cpu_label.grid(row=0, column=0, padx=5, pady=5, sticky="e")
-    cpu_entry = ttk.Entry(threshold_frame)
+    # Status indicator
+    status_frame = ttk.Frame(control_frame)
+    status_frame.pack(fill="x", pady=(0, 10))
+    
+    self.status_label = ttk.Label(status_frame, text="🔴 Monitoring Stopped", 
+                                 font=('Segoe UI', 10, 'bold'))
+    self.status_label.pack(side="left")
+
+    # Threshold settings in a grid
+    threshold_grid = ttk.Frame(control_frame)
+    threshold_grid.pack(fill="x", pady=10)
+
+    # CPU Threshold
+    ttk.Label(threshold_grid, text="CPU Threshold (%):").grid(
+        row=0, column=0, padx=5, pady=5, sticky="w")
+    cpu_entry = ttk.Entry(threshold_grid, width=10)
     cpu_entry.grid(row=0, column=1, padx=5, pady=5)
     cpu_entry.insert(0, str(self.CPU_THRESHOLD))
 
-    # CPU Monitoring Interval Entry
-    cpu_interval_label = ttk.Label(threshold_frame, text="CPU Monitoring Interval (seconds):")
-    cpu_interval_label.grid(row=2, column=0, padx=5, pady=5, sticky="e")
-    cpu_interval_entry = ttk.Entry(threshold_frame)
-    cpu_interval_entry.grid(row=2, column=1, padx=5, pady=5)
-    cpu_interval_entry.insert(0, str(self.CPU_MON_INTERVAL))
-
-    # Memory Threshold Entry
-    memory_label = ttk.Label(threshold_frame, text="Memory Threshold (%):")
-    memory_label.grid(row=1, column=0, padx=5, pady=5, sticky="e")
-    memory_entry = ttk.Entry(threshold_frame)
-    memory_entry.grid(row=1, column=1, padx=5, pady=5)
+    # Memory Threshold
+    ttk.Label(threshold_grid, text="Memory Threshold (%):").grid(
+        row=0, column=2, padx=5, pady=5, sticky="w")
+    memory_entry = ttk.Entry(threshold_grid, width=10)
+    memory_entry.grid(row=0, column=3, padx=5, pady=5)
     memory_entry.insert(0, str(self.MEMORY_THRESHOLD))
 
+    # GPU Threshold
+    ttk.Label(threshold_grid, text="GPU Threshold (%):").grid(
+        row=1, column=0, padx=5, pady=5, sticky="w")
+    gpu_entry = ttk.Entry(threshold_grid, width=10)
+    gpu_entry.grid(row=1, column=1, padx=5, pady=5)
+    gpu_entry.insert(0, str(self.GPU_THRESHOLD))
+
+    # Monitoring Interval
+    ttk.Label(threshold_grid, text="Update Interval (s):").grid(
+        row=1, column=2, padx=5, pady=5, sticky="w")
+    interval_entry = ttk.Entry(threshold_grid, width=10)
+    interval_entry.grid(row=1, column=3, padx=5, pady=5)
+    interval_entry.insert(0, str(self.CPU_MON_INTERVAL))
+
+    # Threshold save functions
     def save_cpu_threshold(event):
         try:
             self.CPU_THRESHOLD = float(cpu_entry.get())
@@ -84,58 +81,104 @@ def create_gui(self):
             memory_entry.delete(0, "end")
             memory_entry.insert(0, str(self.MEMORY_THRESHOLD))
 
-    def save_cpu_interval(event):
+    def save_gpu_threshold(event):
         try:
-            self.CPU_MON_INTERVAL = float(cpu_interval_entry.get())
+            self.GPU_THRESHOLD = float(gpu_entry.get())
         except ValueError:
-            cpu_interval_entry.delete(0, "end")
-            cpu_interval_entry.insert(0, str(self.CPU_MON_INTERVAL))
+            gpu_entry.delete(0, "end")
+            gpu_entry.insert(0, str(self.GPU_THRESHOLD))
 
-    # Bind events to entry boxes
+    def save_interval(event):
+        try:
+            self.CPU_MON_INTERVAL = float(interval_entry.get())
+        except ValueError:
+            interval_entry.delete(0, "end")
+            interval_entry.insert(0, str(self.CPU_MON_INTERVAL))
+
+    # Bind events
     cpu_entry.bind('<FocusOut>', save_cpu_threshold)
     memory_entry.bind('<FocusOut>', save_memory_threshold)
-    cpu_interval_entry.bind('<FocusOut>', save_cpu_interval)
+    gpu_entry.bind('<FocusOut>', save_gpu_threshold)
+    interval_entry.bind('<FocusOut>', save_interval)
 
-    # Start and Stop Monitoring Buttons
-    self.start_button = ttk.Button(threshold_frame, text="Start Monitoring", command=self.start_monitoring)
-    self.start_button.grid(row=5, column=0, padx=5, pady=5)
+    # Control buttons
+    button_frame = ttk.Frame(control_frame)
+    button_frame.pack(pady=10)
 
-    self.stop_button = ttk.Button(threshold_frame, text="Stop Monitoring", command=self.stop_monitoring, state="disabled")
-    self.stop_button.grid(row=5, column=1, padx=5, pady=5)
+    self.start_button = ttk.Button(button_frame, text="▶ Start Monitoring", 
+                                  command=self.start_monitoring, style='Modern.TButton')
+    self.start_button.pack(side="left", padx=5)
 
-    # Monitoring Label
-    self.monitoring_label = ttk.Label(monitor_tab, text="")
-    self.monitoring_label_info = ttk.Label(monitor_tab, text="")
-    self.monitoring_label.pack(pady=5)
-    self.monitoring_label_info.pack(pady=0.5, padx=0.5)
+    self.stop_button = ttk.Button(button_frame, text="⏹ Stop Monitoring", 
+                                 command=self.stop_monitoring, state="disabled", 
+                                 style='Modern.TButton')
+    self.stop_button.pack(side="left", padx=5)
 
-    # Graph Frame
-    graph_frame = ttk.LabelFrame(monitor_tab, text="Resource Usage Graph")
-    graph_frame.pack(padx=10, pady=10, fill="both", expand=True)
+    export_button = ttk.Button(button_frame, text="💾 Export Data", 
+                              command=self.export_data, style='Modern.TButton')
+    export_button.pack(side="left", padx=5)
 
-    self.fig = plt.figure(figsize=(8, 4))
-    self.ax = self.fig.add_subplot(111)
-    self.ax.set_xlabel('Time')
-    self.ax.set_ylabel('Percentage')
+    # Graph Frame with modern styling
+    graph_frame = ttk.LabelFrame(monitor_tab, text="Real-time Resource Usage", 
+                                padding=10)
+    graph_frame.pack(fill="both", expand=True)
+
+    # Create figure with subplots for better organization
+    self.fig, ((self.ax1, self.ax2), (self.ax3, self.ax4)) = plt.subplots(2, 2, 
+                                                                          figsize=(12, 8))
+    self.fig.suptitle('System Resource Monitor', fontsize=14, fontweight='bold')
+    
+    # Style the subplots
+    for ax in [self.ax1, self.ax2, self.ax3, self.ax4]:
+        ax.grid(True, alpha=0.3)
+        ax.set_facecolor('#fafafa')
+    
+    self.ax1.set_title('CPU Usage', fontweight='bold')
+    self.ax1.set_ylabel('Percentage (%)')
+    
+    self.ax2.set_title('Memory Usage', fontweight='bold')
+    self.ax2.set_ylabel('Percentage (%)')
+    
+    self.ax3.set_title('GPU Usage', fontweight='bold')
+    self.ax3.set_ylabel('Percentage (%)')
+    self.ax3.set_xlabel('Time')
+    
+    self.ax4.set_title('GPU Memory', fontweight='bold')
+    self.ax4.set_ylabel('Percentage (%)')
+    self.ax4.set_xlabel('Time')
+
+    plt.tight_layout()
+    
     self.canvas = FigureCanvasTkAgg(self.fig, master=graph_frame)
     self.canvas.get_tk_widget().pack(fill='both', expand=True)
 
-    # Export Data Button
-    export_button = ttk.Button(monitor_tab, text="Export Data", command=self.export_data)
-    export_button.pack(pady=10)
+    # ==================== PROCESSES TAB ====================
+    processes_tab = ttk.Frame(self.tab_control)
+    self.tab_control.add(processes_tab, text="🔧 Top Processes")
 
-    # System Information Tab
-    info_tab = ttk.Frame(self.tab_control)
-    self.tab_control.add(info_tab, text="System Information")
+    # Process info frame
+    process_info_frame = ttk.LabelFrame(processes_tab, text="Top 20 Processes by CPU Usage", 
+                                       padding=10)
+    process_info_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-    # System Information Display
-    system_info_text = tk.Text(info_tab, wrap="word", height=50, width=80)
-    system_info_text.pack(padx=10, pady=10)
+    # Process list with modern styling
+    process_container = ttk.Frame(process_info_frame)
+    process_container.pack(fill="both", expand=True)
 
-    # Gather system information
-    system_info_text.insert(tk.END, gather_system_info())
+    process_scrollbar = ttk.Scrollbar(process_container, orient="vertical")
+    process_scrollbar.pack(side="right", fill="y")
 
-    # Disable editing for all system information
-    system_info_text.configure(state="disabled")
+    self.process_list = tk.Text(process_container, height=25, state="disabled", 
+                               yscrollcommand=process_scrollbar.set,
+                               font=('Consolas', 9), bg='#fafafa')
+    self.process_list.pack(side="left", fill="both", expand=True)
+    process_scrollbar.config(command=self.process_list.yview)
 
-    check_for_updates(self)
+    # Export button for processes
+    export_proc_button = ttk.Button(processes_tab, text="💾 Export Processes", 
+                                   command=self.export_top_processes,
+                                   style='Modern.TButton')
+    export_proc_button.pack(pady=10)
+
+    # Schedule updates
+    self.update_process_info()
